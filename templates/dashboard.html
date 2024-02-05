@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gambling Log Dashboard</title>
+    <link rel="style" type="text/css" href="../static/style.css">
+    <title>Dashboard</title>
 </head>
-
 <body>
-    <h1>Hello you are logged in.</h1>
-    <a href="{{url_for('logout')}}">Press here to logout</a>
+    <h1>Welcome, {{ username }}!</h1>
+    <form method="post">
+        <label for="saved_text">Your Saved Text:</label>
+        <textarea id="saved_text" name="saved_text">{{ saved_text }}</textarea><br>
+        <button type="submit">Save</button>
+    </form>
+    <p><a href="{{ url_for('logout') }}">Logout</a></p>
 </body>
-
 </html>

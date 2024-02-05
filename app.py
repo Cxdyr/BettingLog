@@ -1,104 +1,80 @@
-from flask import Flask, render_template, url_for, redirect
+# Import necessary libraries
+from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
-from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import InputRequired, Length, ValidationError
-from flask_bcrypt import Bcrypt
+from werkzeug.security import generate_password_hash, check_password_hash
 
+# Configure Flask app
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'sponge'  # Change this to a secure key
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 db = SQLAlchemy(app)
-bcrypt = Bcrypt(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-app.config['SECRET_KEY'] = 'thisisasecretkey'
 
-
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
-
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-
-class User(db.Model, UserMixin):
+# Define User model
+class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), nullable=False, unique=True)
-    password = db.Column(db.String(80), nullable=False)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(120), nullable=False)
+    saved_text = db.Column(db.String(500))
 
+# Create database tables
+db.create_all()
 
-class RegisterForm(FlaskForm):
-    username = StringField(validators=[
-                           InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
-
-    password = PasswordField(validators=[
-                             InputRequired(), Length(min=8, max=20)], render_kw={"placeholder": "Password"})
-
-    submit = SubmitField('Register')
-
-    def validate_username(self, username):
-        existing_user_username = User.query.filter_by(
-            username=username.data).first()
-        if existing_user_username:
-            raise ValidationError(
-                'That username already exists. Please choose a different one.')
-
-
-class LoginForm(FlaskForm):
-    username = StringField(validators=[
-                           InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
-
-    password = PasswordField(validators=[
-                             InputRequired(), Length(min=8, max=20)], render_kw={"placeholder": "Password"})
-
-    submit = SubmitField('Login')
-
-
+# Route for home page
 @app.route('/')
 def home():
-    return render_template('home.html')
+    return render_template('index.html')
 
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
-        if user:
-            if bcrypt.check_password_hash(user.password, form.password.data):
-                login_user(user)
-                return redirect(url_for('dashboard'))
-    return render_template('login.html', form=form)
-
-
-@app.route('/dashboard', methods=['GET', 'POST'])
-@login_required
-def dashboard():
-    return render_template('dashboard.html')
-
-
-@app.route('/logout', methods=['GET', 'POST'])
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('login'))
-
-
-@ app.route('/register', methods=['GET', 'POST'])
+# Route for registration
+@app.route('/register', methods=['GET', 'POST'])
 def register():
-    form = RegisterForm()
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
 
-    if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data)
-        new_user = User(username=form.username.data, password=hashed_password)
+        hashed_password = generate_password_hash(password, method='sha256')
+
+        new_user = User(username=username, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
+
         return redirect(url_for('login'))
 
-    return render_template('register.html', form=form)
+    return render_template('register.html')
 
+# Route for login
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
 
-if __name__ == "__main__":
+        user = User.query.filter_by(username=username).first()
+
+        if user and check_password_hash(user.password, password):
+            session['user_id'] = user.id
+            return redirect(url_for('dashboard'))
+
+    return render_template('login.html')
+
+# Route for dashboard
+@app.route('/dashboard', methods=['GET', 'POST'])
+def dashboard():
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+
+        if request.method == 'POST':
+            user.saved_text = request.form['saved_text']
+            db.session.commit()
+
+        return render_template('dashboard.html', username=user.username, saved_text=user.saved_text)
+
+    return redirect(url_for('login'))
+
+# Route for logout
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    return redirect(url_for('login'))
+
+if __name__ == '__main__':
     app.run(debug=True)
