@@ -1,11 +1,5 @@
 body {
+    background-color:gray;
     text-align: center;
-    background-color: rgb(23, 23, 23);
-    color: white;
 }
 
-h1 {
-    color: white;
-    background-color: rgb(42, 47, 53);
-    padding: 5px;
-}
