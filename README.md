@@ -6,6 +6,6 @@ to make this side project. It took me about an hour to make and works fairly dec
 
 
 Instructions:
-Clone the repository
-Run python app.py or python3 app.py if using linux
-go to localhost:2000 on your browser to view the pages
+Clone the repository,
+Run python app.py or python3 app.py if using linux,
+go to localhost:2000 on your browser to view the pages,
