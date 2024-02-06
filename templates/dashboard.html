@@ -2,18 +2,31 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="style" href="../static/style.css">
     <title>Dashboard</title>
+    <link rel="stylesheet" href="../static/style.css">
 </head>
 <body>
-    <h1>Welcome, {{ username }}!</h1>
-    <form method="post">
-        <label for="saved_text">Your Saved Text:</label>
-        <textarea id="saved_text" name="saved_text">{{ saved_text }}</textarea><br>
-        <button type="submit">Save</button>
+    <h1>Welcome to the Dashboard, {{ user.username }}!</h1>
+    <p>Your bets: {{ user.saved_text }}</p>
+    <p>Your profit: ${{ user.profit }}</p>
+    
+    <form method="post" action="{{ url_for('update_profit') }}">
+        <label for="profit_update">Update Profit:</label>
+        <input type="number" step="0.01" name="profit_update" required>
+        <input type="submit" value="Update">
     </form>
+
+    <form method="post" action="{{ url_for('save_text') }}">
+        <label for="text_input">Enter Text:</label>
+        <input type="text" name="text_input" required>
+        <input type="submit" value="Save Text">
+    </form>
+
+    <form method="post" action="{{ url_for('clear_text') }}" onsubmit="return confirm('Are you sure you want to clear your text?');">
+        <input type="submit" value="Clear Text">
+    </form>
+
     <p><a href="{{ url_for('logout') }}">Logout</a></p>
 </body>
 </html>
