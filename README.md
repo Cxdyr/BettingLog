@@ -3,3 +3,9 @@ Application that allows for the user to register and login, then enter a +- doub
 Background: I sports bet often and find myself losing track of my profit, bets etc, I also bet on small things that aren't available on current applications that do the same thing.
 I am also working with a team to create a functioning application that aggregates streaming services and I am working on the front end interface and wanted to use similar methods 
 to make this side project. It took me about an hour to make and works fairly decently.
+
+
+Instructions:
+Clone the repository
+Run python app.py or python3 app.py if using linux
+go to localhost:2000 on your browser to view the pages
